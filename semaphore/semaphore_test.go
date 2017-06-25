@@ -26,7 +26,9 @@ func TestFailedLoad(t *testing.T) {
 }
 
 func TestToJSON(t *testing.T) {
-	s := Semaphore{1234,3, map[string]int64{"a": 0}}
+	s := New(3)
+	s.Index = 1234
+	s.Holders["a"] = 0
 	json_repr,err := s.ToJSON()
 	if err != nil {
 		t.Log(err)
