@@ -68,5 +68,5 @@ func (s *Semaphore)Holds(id string) bool {
 // Remove holder entry from semaphore if it's present
 func (s *Semaphore)Release(id string) bool {
 	delete(s.Holders, id)
-	return true
+	return !s.Holds(id)
 }
