@@ -21,7 +21,7 @@ func flock(f *os.File) error {
 	lock := new(syscall.Flock_t)
 	lock.Type = syscall.F_WRLCK
 	err := syscall.FcntlFlock(fd, syscall.F_SETLK, lock)
-	return err 
+	return err
 }
 
 func unflock(f *os.File) error {
@@ -33,7 +33,7 @@ func unflock(f *os.File) error {
 }
 
 func (s *SemaphoreFile) operation(op func (*SemaphoreData,string) (bool,error), id string) (bool,error) {
-	f,err := os.OpenFile(s.path, os.O_RDWR, 0666)
+	f,err := os.OpenFile(s.path, os.O_RDWR | os.O_CREATE, 0666)
 	if err != nil {
 		return false, err
 	}
@@ -57,6 +57,10 @@ func (s *SemaphoreFile) operation(op func (*SemaphoreData,string) (bool,error), 
 	}
 
 	if _, err := f.Seek(0,0); err != nil {
+		return false, err
+	}
+
+	if err := f.Truncate(0); err != nil {
 		return false, err
 	}
 
