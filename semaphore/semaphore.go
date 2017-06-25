@@ -9,7 +9,6 @@ import (
 
 type Semaphore struct {
 	Index uint64   `json:"-"`
-	Count int      `json:"count"`
 	Max   int      `json:"max"`
 	Holders map[string]uint64  `json:"holders"`
 }
@@ -24,6 +23,10 @@ func Load(in io.Reader) (*Semaphore, error) {
 	d := json.NewDecoder(in)
 	err := d.Decode(s)
 	return s, err
+}
+
+func (s *Semaphore)Count() int {
+	return len(s.Holders)
 }
 
 func (s *Semaphore)ToJSON() (string, error) {

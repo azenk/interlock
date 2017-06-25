@@ -8,16 +8,16 @@ import (
 )
 
 func TestSuccessfullLoad(t *testing.T) {
-	json_sem := "{ \"index\": 1234, \"count\": 1, \"max\": 3, \"holders\": {\"a\": 0 }}"
+	json_sem := "{ \"index\": 1234, \"max\": 3, \"holders\": {\"a\": 0 }}"
 	jr := strings.NewReader(json_sem)
 	s, err := Load(jr)
-	if err != nil || s.Index != 0 || s.Count != 1 || s.Max != 3 {
+	if err != nil || s.Index != 0 || s.Count() != 1 || s.Max != 3 {
 		t.Fail()
 	}
 }
 
 func TestFailedLoad(t *testing.T) {
-	json_sem := "{ count\": 1, \"max\": 3, \"holders\": {\"a\": 0}}"
+	json_sem := "{ \"max\": 3, \"holders\": {\"a\": 0}}"
 	jr := strings.NewReader(json_sem)
 	_, err := Load(jr)
 	if err == nil {
@@ -26,14 +26,14 @@ func TestFailedLoad(t *testing.T) {
 }
 
 func TestToJSON(t *testing.T) {
-	s := Semaphore{1234,1,3, map[string]uint64{"a": 0}}
+	s := Semaphore{1234,3, map[string]uint64{"a": 0}}
 	json_repr,err := s.ToJSON()
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
 
-	ref_json_repr := "{\"count\":1,\"max\":3,\"holders\":{\"a\":0}}"
+	ref_json_repr := "{\"max\":3,\"holders\":{\"a\":0}}"
 
 	var o1, o2 interface{}
 
