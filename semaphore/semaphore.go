@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+type Semaphore interface {
+	Acquire(string) bool
+	Holds(string) bool
+	Release(string) bool
+}
+
 type SemaphoreData struct {
 	Index uint64   `json:"-"`
 	Max   int      `json:"max"`
