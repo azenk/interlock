@@ -10,7 +10,7 @@ import (
 type Semaphore struct {
 	Index uint64   `json:"-"`
 	Max   int      `json:"max"`
-	Holders map[string]uint64  `json:"holders"`
+	Holders map[string]int64  `json:"holders"`
 }
 
 func (s Semaphore) String() string {
