@@ -55,3 +55,15 @@ func TestToJSON(t *testing.T) {
 		t.Errorf("%s != %s",o1,o2)
 	}
 }
+
+func TestAcquire(t *testing.T) {
+	s := Semaphore{Max:1,Holders:make(map[string]int64,1)}
+	ok := s.Acquire("Host1")
+	if !ok {
+		t.Errorf("Unable to acquire semaphore from Host1")
+	}
+	ok = s.Acquire("Host2")
+	if ok {
+		t.Errorf("Incorrectly Able to acquire semaphore from Host2")
+	}
+}

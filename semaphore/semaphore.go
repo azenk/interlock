@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"encoding/json"
 	"bytes"
+	"time"
 )
 
 type Semaphore struct {
@@ -35,4 +36,18 @@ func (s *Semaphore)ToJSON() (string, error) {
 	e.SetIndent("","")
 	err := e.Encode(s)
 	return buf.String(), err
+}
+
+func (s *Semaphore)Acquire(id string) bool {
+	_, ok := s.Holders[id]
+	if ok {
+		return true
+	}
+
+	if s.Count() == s.Max {
+		return false
+	}
+
+	s.Holders[id] = time.Now().Unix()
+	return true
 }
