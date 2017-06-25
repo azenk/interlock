@@ -9,9 +9,9 @@ import (
 )
 
 type Semaphore interface {
-	Acquire(string) bool
-	Holds(string) bool
-	Release(string) bool
+	Acquire(string) (bool,error)
+	Holds(string) (bool,error)
+	Release(string) (bool,error)
 }
 
 type SemaphoreData struct {
@@ -51,28 +51,29 @@ func (s *SemaphoreData)ToJSON() (string, error) {
 	return buf.String(), err
 }
 
-func (s *SemaphoreData)Acquire(id string) bool {
+func (s *SemaphoreData)Acquire(id string) (bool,error) {
 	_, ok := s.Holders[id]
 	if ok {
-		return true
+		return true, nil
 	}
 
 	if s.Count() == s.Max {
-		return false
+		return false, nil
 	}
 
 	s.Holders[id] = time.Now().Unix()
-	return true
+	return true, nil
 }
 
 // Return true if id in list of holders, false otherwise
-func (s *SemaphoreData)Holds(id string) bool {
+func (s *SemaphoreData)Holds(id string) (bool,error) {
 	_,ok := s.Holders[id]
-	return ok
+	return ok, nil
 }
 
 // Remove holder entry from semaphore if it's present
-func (s *SemaphoreData)Release(id string) bool {
+func (s *SemaphoreData)Release(id string) (bool,error) {
 	delete(s.Holders, id)
-	return !s.Holds(id)
+	ok,err := s.Holds(id)
+	return !ok, err
 }

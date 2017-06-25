@@ -60,11 +60,11 @@ func TestToJSON(t *testing.T) {
 
 func TestAcquire(t *testing.T) {
 	s := New(1)
-	ok := s.Acquire("Host1")
+	ok,_ := s.Acquire("Host1")
 	if !ok {
 		t.Errorf("Unable to acquire semaphore from Host1")
 	}
-	ok = s.Acquire("Host2")
+	ok,_ = s.Acquire("Host2")
 	if ok {
 		t.Errorf("Incorrectly Able to acquire semaphore from Host2")
 	}
@@ -72,16 +72,18 @@ func TestAcquire(t *testing.T) {
 
 func TestHolds(t *testing.T) {
 	s := New(1)
-	ok := s.Acquire("Host1")
+	ok,_ := s.Acquire("Host1")
 	if !ok {
 		t.Errorf("Unable to acquire semaphore from Host1")
 	}
 
-	if !s.Holds("Host1") {
+	ok, _ = s.Holds("Host1")
+	if !ok {
 		t.Errorf("Semaphore doesn't claim that Host1 is a holder")
 	}
 
-	if s.Holds("Host2") {
+	ok, _ = s.Holds("Host2")
+	if ok {
 		t.Errorf("Semaphore claims that Host2 is a holder")
 	}
 }
@@ -90,16 +92,17 @@ func TestRelease(t *testing.T) {
 	s := New(2)
 	s.Holders["test"] = 0
 
-	ok := s.Release("test")
+	ok, _ := s.Release("test")
 	if !ok {
 		t.Errorf("Failed to release semaphore")
 	}
 
-	if s.Holds("test") {
+	ok, _ = s.Holds("test")
+	if ok {
 		t.Errorf("Failed to release semaphore")
 	}
 
-	ok = s.Release("test")
+	ok, _ = s.Release("test")
 	if !ok {
 		t.Errorf("Repeated release of semaphore failed")
 	}
