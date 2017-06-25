@@ -69,3 +69,38 @@ func TestAcquire(t *testing.T) {
 		t.Errorf("Incorrectly Able to acquire semaphore from Host2")
 	}
 }
+
+func TestHolds(t *testing.T) {
+	s := New(1)
+	ok := s.Acquire("Host1")
+	if !ok {
+		t.Errorf("Unable to acquire semaphore from Host1")
+	}
+
+	if !s.Holds("Host1") {
+		t.Errorf("Semaphore doesn't claim that Host1 is a holder")
+	}
+
+	if s.Holds("Host2") {
+		t.Errorf("Semaphore claims that Host2 is a holder")
+	}
+}
+
+func TestRelease(t *testing.T) {
+	s := New(2)
+	s.Holders["test"] = 0
+
+	ok := s.Release("test")
+	if !ok {
+		t.Errorf("Failed to release semaphore")
+	}
+
+	if s.Holds("test") {
+		t.Errorf("Failed to release semaphore")
+	}
+
+	ok = s.Release("test")
+	if !ok {
+		t.Errorf("Repeated release of semaphore failed")
+	}
+}

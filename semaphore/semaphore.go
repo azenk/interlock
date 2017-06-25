@@ -58,3 +58,15 @@ func (s *Semaphore)Acquire(id string) bool {
 	s.Holders[id] = time.Now().Unix()
 	return true
 }
+
+// Return true if id in list of holders, false otherwise
+func (s *Semaphore)Holds(id string) bool {
+	_,ok := s.Holders[id]
+	return ok
+}
+
+// Remove holder entry from semaphore if it's present
+func (s *Semaphore)Release(id string) bool {
+	delete(s.Holders, id)
+	return true
+}
