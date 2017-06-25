@@ -14,8 +14,15 @@ type Semaphore struct {
 	Holders map[string]int64  `json:"holders"`
 }
 
+func New(max int) *Semaphore {
+	s := new(Semaphore)
+	s.Max = max
+	s.Holders = make(map[string]int64, max)
+	return s
+}
+
 func (s Semaphore) String() string {
-	return fmt.Sprintf("Semaphore - index: %d, count: %d, max %d, holders: %s", s.Index, s.Count, s.Max, s.Holders)
+	return fmt.Sprintf("Semaphore - index: %d, count: %d, max %d, holders: %s", s.Index, s.Count(), s.Max, s.Holders)
 
 }
 
