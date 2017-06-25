@@ -32,8 +32,7 @@ func unflock(f *os.File) error {
 	return err
 }
 
-// Open semaphore file for exclusive access, write
-func (s *SemaphoreFile) Acquire(id string) (bool,error) {
+func (s *SemaphoreFile) operation(op func (*SemaphoreData,string) (bool,error), id string) (bool,error) {
 	f,err := os.OpenFile(s.path, os.O_RDWR, 0666)
 	if err != nil {
 		return false, err
@@ -52,7 +51,7 @@ func (s *SemaphoreFile) Acquire(id string) (bool,error) {
 		return false, err
 	}
 
-	result,err := sem_data.Acquire(id)
+	result,err := op(sem_data, id)
 	if !result {
 		return false, err
 	}
@@ -73,3 +72,15 @@ func (s *SemaphoreFile) Acquire(id string) (bool,error) {
 	return true, nil
 }
 
+// Open semaphore file for exclusive access, write
+func (s *SemaphoreFile) Acquire(id string) (bool,error) {
+	return s.operation((*SemaphoreData).Acquire, id)
+}
+
+func (s *SemaphoreFile) Release(id string) (bool,error) {
+	return s.operation((*SemaphoreData).Release, id)
+}
+
+func (s *SemaphoreFile) Holds(id string) (bool,error) {
+	return s.operation((*SemaphoreData).Holds, id)
+}
