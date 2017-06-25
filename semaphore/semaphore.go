@@ -4,6 +4,7 @@ import (
 	"io"
 	"fmt"
 	"encoding/json"
+	"bytes"
 )
 
 type Semaphore struct {
@@ -23,4 +24,12 @@ func Load(in io.Reader) (*Semaphore, error) {
 	d := json.NewDecoder(in)
 	err := d.Decode(s)
 	return s, err
+}
+
+func (s *Semaphore)ToJSON() (string, error) {
+	buf := new(bytes.Buffer)
+	e := json.NewEncoder(buf)
+	e.SetIndent("","")
+	err := e.Encode(s)
+	return buf.String(), err
 }
