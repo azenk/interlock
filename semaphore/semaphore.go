@@ -2,15 +2,25 @@ package semaphore
 
 import (
 	"io"
+	"fmt"
+	"encoding/json"
 )
 
 type Semaphore struct {
-	Index uint64
-	Count int
-	Max   int
-	Holders []string
+	Index uint64   `json:"-"`
+	Count int      `json:"count"`
+	Max   int      `json:"max"`
+	Holders []string  `json:"holders"`
 }
 
-func Load(in io.Reader) *Semaphore {
-	return &Semaphore{0, 0, 0, make([]string, 0)}
+func (s Semaphore) String() string {
+	return fmt.Sprintf("Semaphore - index: %d, count: %d, max %d, holders: %s", s.Index, s.Count, s.Max, s.Holders)
+
+}
+
+func Load(in io.Reader) (*Semaphore, error) {
+	s := new(Semaphore)
+	d := json.NewDecoder(in)
+	err := d.Decode(s)
+	return s, err
 }
