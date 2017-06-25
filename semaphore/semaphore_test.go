@@ -17,7 +17,7 @@ func TestSuccessfullLoad(t *testing.T) {
 }
 
 func TestFailedLoad(t *testing.T) {
-	json_sem := "{ \"max\": 3, \"holders\": {\"a\": 0}}"
+	json_sem := "{ max\": 3, \"holders\": {\"a\": 0}}"
 	jr := strings.NewReader(json_sem)
 	_, err := Load(jr)
 	if err == nil {
