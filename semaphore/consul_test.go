@@ -51,7 +51,7 @@ func (kv *mockKVAPI) CAS(data *api.KVPair, wropt *api.WriteOptions) (bool, *api.
 }
 
 func TestConsulAcquire(t *testing.T) {
-  s := NewSemaphoreConsul(new(mockClient), "/test/key", 1)
+  s := NewSemaphoreConsul(new(mockClient).KV(), "test/key", 1)
   ok, err := s.Acquire("test")
 	if !ok {
 		t.Error("Failed to acquire semaphore")

@@ -14,16 +14,14 @@ type ConsulKVAPI interface {
 	Get(key string, q *api.QueryOptions) (*api.KVPair, *api.QueryMeta, error)
 }
 type SemaphoreConsul struct {
-	client ConsulClient
 	kv ConsulKVAPI
 	key string
 	max int
 }
 
-func NewSemaphoreConsul(client ConsulClient, key string, max int) *SemaphoreConsul {
+func NewSemaphoreConsul(kvapi ConsulKVAPI, key string, max int) *SemaphoreConsul {
 	s := new(SemaphoreConsul)
-	s.client = client
-	s.kv = client.KV()
+	s.kv = kvapi
 	s.key = key
 	s.max = max
 	return s
