@@ -1,9 +1,9 @@
 trigger: /usr/bin/true
-action: test.sh
+action: testing/test.sh
 interval: 15s
 delay: 10s
 semaphore:
   type: file
   max: 1
   path: semtest.json
-  id: "test_instance"
+  id: "test_instance2"
