@@ -37,6 +37,21 @@ func load_config(path string) *Config {
 				log.Fatalf("error: %v", err)
 	}
 	log.Println(c)
+	c.Trigger,err = filepath.Abs(c.Trigger)
+	if err != nil {
+		log.Fatalf("Unable to resolve path: %s\n", err)
+	}
+
+	c.Action,err = filepath.Abs(c.Action)
+	if err != nil {
+		log.Fatalf("Unable to resolve path: %s\n", err)
+	}
+
+	c.Semaphore.Path,err = filepath.Abs(c.Semaphore.Path)
+	if err != nil {
+		log.Fatalf("Unable to resolve path: %s\n", err)
+	}
+
 	return c
 }
 
