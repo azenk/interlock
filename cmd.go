@@ -29,6 +29,9 @@ func load_config(path string) *Config {
 	c := new(Config)
 
 	data,err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatalf("Unable to read config file: %s\n", err)
+	}
 
 	err = yaml.Unmarshal(data, c)
 	if err != nil {
