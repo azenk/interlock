@@ -1,0 +1,9 @@
+trigger: /usr/bin/true
+action: testing/test.sh
+interval: 15s
+delay: 10s
+semaphore:
+  type: consul
+  max: 1
+  path: test/key-00
+  id: "test_instance_2"

@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"os/exec"
-	"./semaphore"
+	"github.com/azenk/interlock/semaphore"
 	"path/filepath"
 	"log"
 	"time"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"github.com/hashicorp/consul/api"
 )
 
 type Config struct {
@@ -47,9 +48,11 @@ func load_config(path string) *Config {
 		log.Fatalf("Unable to resolve path: %s\n", err)
 	}
 
-	c.Semaphore.Path,err = filepath.Abs(c.Semaphore.Path)
-	if err != nil {
-		log.Fatalf("Unable to resolve path: %s\n", err)
+	if c.Semaphore.Type == "file" {
+		c.Semaphore.Path,err = filepath.Abs(c.Semaphore.Path)
+		if err != nil {
+			log.Fatalf("Unable to resolve path: %s\n", err)
+		}
 	}
 
 	return c
@@ -69,14 +72,18 @@ func main() {
 	case "file":
 		log.Printf("Creating file semaphore at: %s\n", cfg.Semaphore.Path)
 		sem = semaphore.NewSemaphoreFile(cfg.Semaphore.Path, cfg.Semaphore.Max)
+	case "consul":
+		log.Printf("Creating new consul semaphore.")
+		client, err := api.NewClient(api.DefaultConfig())
+		if err != nil {
+		    log.Fatalf("Unable to connect to consul")
+		}
+		sem = semaphore.NewSemaphoreConsul(client.KV(), cfg.Semaphore.Path, cfg.Semaphore.Max)
 	default:
 		sem = semaphore.New(cfg.Semaphore.Max)
 	}
 
 	for {
-		log.Printf("Sleeping for %s\n", cfg.Interval)
-		time.Sleep(cfg.Interval)
-
 		trigger := exec.Command(cfg.Trigger)
 		if err := trigger.Run(); err != nil {
 			log.Printf("Trigger not tripped, continuing\n")
@@ -101,5 +108,8 @@ func main() {
 
 		log.Println("Action completed, releasing semaphore")
 		sem.Release(cfg.Semaphore.Id)
+
+		log.Printf("Sleeping for %s\n", cfg.Interval)
+		time.Sleep(cfg.Interval)
 	}
 }
