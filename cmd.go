@@ -84,9 +84,6 @@ func main() {
 	}
 
 	for {
-		log.Printf("Sleeping for %s\n", cfg.Interval)
-		time.Sleep(cfg.Interval)
-
 		trigger := exec.Command(cfg.Trigger)
 		if err := trigger.Run(); err != nil {
 			log.Printf("Trigger not tripped, continuing\n")
@@ -111,5 +108,8 @@ func main() {
 
 		log.Println("Action completed, releasing semaphore")
 		sem.Release(cfg.Semaphore.Id)
+
+		log.Printf("Sleeping for %s\n", cfg.Interval)
+		time.Sleep(cfg.Interval)
 	}
 }
