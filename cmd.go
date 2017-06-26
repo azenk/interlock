@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"os/exec"
-	"./semaphore"
+	"github.com/azenk/interlock/semaphore"
 	"path/filepath"
 	"log"
 	"time"
