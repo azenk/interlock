@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"bytes"
 	"os/exec"
 	"./semaphore"
 	"path/filepath"
@@ -30,13 +29,11 @@ func load_config(path string) *Config {
 	c := new(Config)
 
 	data,err := ioutil.ReadFile(path)
-	log.Println(bytes.NewBuffer(data).String())
 
 	err = yaml.Unmarshal(data, c)
 	if err != nil {
 				log.Fatalf("error: %v", err)
 	}
-	log.Println(c)
 	c.Trigger,err = filepath.Abs(c.Trigger)
 	if err != nil {
 		log.Fatalf("Unable to resolve path: %s\n", err)
