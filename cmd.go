@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os/exec"
 	"github.com/azenk/interlock/semaphore"
+	"github.com/azenk/interlock/trigger"
 	"path/filepath"
 	"log"
 	"time"
@@ -83,15 +84,15 @@ func main() {
 		sem = semaphore.New(cfg.Semaphore.Max)
 	}
 
+	t := trigger.NewCmdTrigger(cfg.Trigger, cfg.Interval)
+	t.Start()
+	defer t.Stop()
+
 	for {
-		trigger := exec.Command(cfg.Trigger)
-		if err := trigger.Run(); err != nil {
-			log.Printf("Trigger not tripped, continuing\n")
-			continue
-		} else {
-			log.Printf("Trigger tripped, delaying for %s\n", cfg.Delay)
-			time.Sleep(cfg.Delay)
-		}
+		log.Printf("Waiting for trigger\n")
+		t.Wait()
+		log.Printf("Trigger received!\n")
+		t.Mask()
 
 		log.Println("Acquiring semaphore")
 		if ok, err := sem.Acquire(cfg.Semaphore.Id); !ok || err != nil {
@@ -108,8 +109,6 @@ func main() {
 
 		log.Println("Action completed, releasing semaphore")
 		sem.Release(cfg.Semaphore.Id)
-
-		log.Printf("Sleeping for %s\n", cfg.Interval)
-		time.Sleep(cfg.Interval)
+		t.Unmask()
 	}
 }
