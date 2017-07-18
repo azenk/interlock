@@ -113,7 +113,7 @@ func main() {
 			t.Wait()
 			log.Printf("Trigger received!\n")
 			t.Mask()
-			state = AcquireSemaphore
+			state = PreCheck
 
 		case HoldsSemaphore:
 			log.Println("Checking to see if we already hold the semaphore")
@@ -124,6 +124,10 @@ func main() {
 			} else {
 				state = TriggerWait
 			}
+
+		case PreCheck:
+			log.Println("Running pre checks")
+			state = AcquireSemaphore
 
 		case AcquireSemaphore:
 			log.Println("Acquiring semaphore")
@@ -144,6 +148,10 @@ func main() {
 
 		case ActionComplete:
 			log.Println("Test if action was completed")
+			state = PostCheck
+
+		case PostCheck:
+			log.Println("Running post checks")
 			state = ReleaseSemaphore
 
 		case ReleaseSemaphore:
