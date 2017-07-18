@@ -27,6 +27,18 @@ type Config struct {
 		}
 }
 
+const (
+	Loading = iota
+	TriggerWait
+	PerformAction
+	ActionComplete
+	PreCheck
+	AcquireSemaphore
+	ReleaseSemaphore
+	PostCheck
+	Error
+)
+
 func load_config(path string) *Config {
 	c := new(Config)
 
@@ -60,6 +72,7 @@ func load_config(path string) *Config {
 }
 
 func main() {
+	state := Loading
 	config_path := new(string)
 	flag.StringVar(config_path, "config", "config.yml", "path to config file")
 	flag.Parse()
@@ -87,28 +100,42 @@ func main() {
 	t := trigger.NewCmdTrigger(cfg.Trigger, cfg.Interval)
 	t.Start()
 	defer t.Stop()
+	state = TriggerWait
 
 	for {
-		log.Printf("Waiting for trigger\n")
-		t.Wait()
-		log.Printf("Trigger received!\n")
-		t.Mask()
+		switch state {
+		case TriggerWait:
+			t.Unmask()
+			log.Printf("Waiting for trigger\n")
+			t.Wait()
+			log.Printf("Trigger received!\n")
+			t.Mask()
+			state = AcquireSemaphore
 
-		log.Println("Acquiring semaphore")
-		if ok, err := sem.Acquire(cfg.Semaphore.Id); !ok || err != nil {
-			log.Printf("Failed to acquire semaphore: %s\n",err)
-			continue
+		case AcquireSemaphore:
+			log.Println("Acquiring semaphore")
+			if ok, err := sem.Acquire(cfg.Semaphore.Id); !ok || err != nil {
+				log.Printf("Failed to acquire semaphore: %s\n",err)
+				continue
+			}
+			state = PerformAction
+
+		case PerformAction:
+			log.Printf("Executing action: %s\n", cfg.Action)
+			action := exec.Command(cfg.Action)
+			if err := action.Run(); err != nil {
+				log.Fatalf("Action failed: %s\n", err)
+				break
+			}
+			state = ActionComplete
+
+		case ActionComplete:
+			state = ReleaseSemaphore
+
+		case ReleaseSemaphore:
+			log.Println("Action completed, releasing semaphore")
+			sem.Release(cfg.Semaphore.Id)
+			state = TriggerWait
 		}
-
-		log.Printf("Executing action: %s\n", cfg.Action)
-		action := exec.Command(cfg.Action)
-		if err := action.Run(); err != nil {
-			log.Fatalf("Action failed: %s\n", err)
-			break
-		}
-
-		log.Println("Action completed, releasing semaphore")
-		sem.Release(cfg.Semaphore.Id)
-		t.Unmask()
 	}
 }
