@@ -33,6 +33,7 @@ const (
 	PerformAction
 	ActionComplete
 	PreCheck
+	HoldsSemaphore
 	AcquireSemaphore
 	ReleaseSemaphore
 	PostCheck
@@ -73,6 +74,7 @@ func load_config(path string) *Config {
 
 func main() {
 	state := Loading
+	log.Println("Loading")
 	config_path := new(string)
 	flag.StringVar(config_path, "config", "config.yml", "path to config file")
 	flag.Parse()
@@ -97,26 +99,37 @@ func main() {
 		sem = semaphore.New(cfg.Semaphore.Max)
 	}
 
+	log.Println("Starting Trigger")
 	t := trigger.NewCmdTrigger(cfg.Trigger, cfg.Interval)
 	t.Start()
 	defer t.Stop()
-	state = TriggerWait
+	state = HoldsSemaphore
 
 	for {
 		switch state {
 		case TriggerWait:
-			t.Unmask()
 			log.Printf("Waiting for trigger\n")
+			t.Unmask()
 			t.Wait()
 			log.Printf("Trigger received!\n")
 			t.Mask()
 			state = AcquireSemaphore
 
+		case HoldsSemaphore:
+			log.Println("Checking to see if we already hold the semaphore")
+			if hold, err := sem.Holds(cfg.Semaphore.Id); err != nil {
+				state = Error
+			} else if hold {
+				state = ActionComplete
+			} else {
+				state = TriggerWait
+			}
+
 		case AcquireSemaphore:
 			log.Println("Acquiring semaphore")
 			if ok, err := sem.Acquire(cfg.Semaphore.Id); !ok || err != nil {
 				log.Printf("Failed to acquire semaphore: %s\n",err)
-				continue
+				state = Error
 			}
 			state = PerformAction
 
@@ -125,17 +138,22 @@ func main() {
 			action := exec.Command(cfg.Action)
 			if err := action.Run(); err != nil {
 				log.Fatalf("Action failed: %s\n", err)
-				break
+				state = Error
 			}
 			state = ActionComplete
 
 		case ActionComplete:
+			log.Println("Test if action was completed")
 			state = ReleaseSemaphore
 
 		case ReleaseSemaphore:
 			log.Println("Action completed, releasing semaphore")
 			sem.Release(cfg.Semaphore.Id)
 			state = TriggerWait
+
+		case Error:
+			log.Println("Error")
+			break
 		}
 	}
 }
